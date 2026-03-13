@@ -19,14 +19,9 @@ async function handler(request: NextRequest) {
 
   try {
     path && revalidatePath(path)
-    tags?.split(",").forEach((tag) => revalidateTag(tag, "default"))
-    if (tags && !path) {
-      revalidatePath("/", "layout")
-    }
+    tags?.split(",").forEach((tag) => revalidateTag(tag, "max"))
 
-    return new Response("Revalidated.", {
-      headers: { "Cache-Control": "no-store" },
-    })
+    return new Response("Revalidated.")
   } catch (error) {
     return new Response((error as Error).message, { status: 500 })
   }
