@@ -19,7 +19,12 @@ async function handler(request: NextRequest) {
 
   try {
     path && revalidatePath(path)
-    tags?.split(",").forEach((tag) => revalidateTag(tag, "max"))
+    tags?.split(",").forEach((tag) => {
+      revalidateTag(tag, "default")
+      if (tag.startsWith("node_list:")) {
+        revalidatePath("/")
+      }
+    })
 
     return new Response("Revalidated.")
   } catch (error) {
