@@ -1,41 +1,23 @@
-import { ArticleTeaser } from "@/components/drupal/ArticleTeaser"
-import { drupal } from "@/lib/drupal"
+import { Link } from "@/components/navigation/Link"
 import type { Metadata } from "next"
-import type { DrupalNode } from "next-drupal"
 
 export const metadata: Metadata = {
   description: "A Next.js site powered by a Drupal backend.",
 }
 
-export const revalidate = 60
-
-export default async function Home() {
-  const nodes = await drupal.getResourceCollection<DrupalNode[]>(
-    "node--article",
-    {
-      params: {
-        "filter[status]": 1,
-        "fields[node--article]": "title,path,field_image,uid,created,body",
-        include: "field_image,uid",
-        sort: "-created",
-      },
-      next: { revalidate: 60, tags: ["node_list:article"] },
-    }
-  )
-
+export default function Home() {
   return (
-    <>
-      <h1 className="mb-10 text-6xl font-black">Latest Articles.</h1>
-      {nodes?.length ? (
-        nodes.map((node) => (
-          <div key={node.id}>
-            <ArticleTeaser node={node} />
-            <hr className="my-20" />
-          </div>
-        ))
-      ) : (
-        <p className="py-4">No nodes found</p>
-      )}
-    </>
+    <div className="py-10">
+      <h1 className="mb-6 text-6xl font-black">Next.js for Drupal</h1>
+      <p className="mb-10 text-xl text-gray-600">
+        A headless Drupal site built with Next.js, hosted on Pantheon.
+      </p>
+      <Link
+        href="/blog"
+        className="inline-block px-8 py-4 text-lg font-semibold text-white no-underline bg-blue-600 rounded-md hover:bg-blue-700"
+      >
+        Read the Blog
+      </Link>
+    </div>
   )
 }

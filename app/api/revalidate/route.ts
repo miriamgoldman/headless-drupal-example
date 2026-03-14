@@ -21,9 +21,6 @@ async function handler(request: NextRequest) {
     path && revalidatePath(path)
     tags?.split(",").forEach((tag) => {
       revalidateTag(tag, "default")
-      if (tag.startsWith("node_list:")) {
-        revalidatePath("/")
-      }
     })
 
     return new Response("Revalidated.")
