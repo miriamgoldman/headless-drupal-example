@@ -1,3 +1,4 @@
+import { cacheTag, cacheLife } from "next/cache"
 import { ArticleTeaser } from "@/components/drupal/ArticleTeaser"
 import { drupal } from "@/lib/drupal"
 import type { Metadata } from "next"
@@ -8,21 +9,31 @@ export const metadata: Metadata = {
   description: "Latest articles from our Drupal-powered blog.",
 }
 
-export const revalidate = 60
+async function getArticles(): Promise<DrupalNode[]> {
+  "use cache"
+  cacheTag("node_list:article")
+  cacheLife({ stale: Infinity, revalidate: Infinity, expire: Infinity })
+
+  try {
+    return await drupal.getResourceCollection<DrupalNode[]>(
+      "node--article",
+      {
+        params: {
+          "filter[status]": 1,
+          "fields[node--article]": "title,path,field_image,uid,created,body",
+          include: "field_image,uid",
+          sort: "-created",
+        },
+      }
+    )
+  } catch (error) {
+    console.error("Failed to fetch articles:", error)
+    return []
+  }
+}
 
 export default async function BlogPage() {
-  const nodes = await drupal.getResourceCollection<DrupalNode[]>(
-    "node--article",
-    {
-      params: {
-        "filter[status]": 1,
-        "fields[node--article]": "title,path,field_image,uid,created,body",
-        include: "field_image,uid",
-        sort: "-created",
-      },
-      next: { revalidate: 60, tags: ["node_list:article"] },
-    }
-  )
+  const nodes = await getArticles()
 
   return (
     <>
