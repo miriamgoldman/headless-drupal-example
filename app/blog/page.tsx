@@ -11,18 +11,23 @@ export const metadata: Metadata = {
 export const revalidate = 60
 
 export default async function BlogPage() {
-  const nodes = await drupal.getResourceCollection<DrupalNode[]>(
-    "node--article",
-    {
-      params: {
-        "filter[status]": 1,
-        "fields[node--article]": "title,path,field_image,uid,created,body",
-        include: "field_image,uid",
-        sort: "-created",
-      },
-      next: { revalidate: 60, tags: ["node_list:article"] },
-    }
-  )
+  let nodes: DrupalNode[] = []
+  try {
+    nodes = await drupal.getResourceCollection<DrupalNode[]>(
+      "node--article",
+      {
+        params: {
+          "filter[status]": 1,
+          "fields[node--article]": "title,path,field_image,uid,created,body",
+          include: "field_image,uid",
+          sort: "-created",
+        },
+        next: { revalidate: 60, tags: ["node_list:article"] },
+      }
+    )
+  } catch (error) {
+    console.error("Failed to fetch articles:", error)
+  }
 
   return (
     <>
