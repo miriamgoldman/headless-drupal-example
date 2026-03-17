@@ -1,4 +1,4 @@
-import { Suspense } from "react"
+import { cacheTag, cacheLife } from "next/cache"
 import { notFound } from "next/navigation"
 import { Article } from "@/components/drupal/Article"
 import { BasicPage } from "@/components/drupal/BasicPage"
@@ -7,19 +7,23 @@ import type { Metadata, ResolvingMetadata } from "next"
 import type { DrupalNode, JsonApiParams } from "next-drupal"
 
 async function getNode(slug: string[]) {
-  const path = `/${slug.join("/")}`
+  "use cache"
 
+  const path = `/${slug.join("/")}`
   const params: JsonApiParams = {}
 
   const translatedPath = await drupal.translatePath(path)
 
   if (!translatedPath) {
-    throw new Error("Resource not found", { cause: "NotFound" })
+    return null
   }
 
   const type = translatedPath.jsonapi?.resourceName!
   const uuid = translatedPath.entity.uuid
   const entityId = translatedPath.entity.id
+
+  cacheTag(`node:${entityId}`, type)
+  cacheLife({ stale: Infinity, revalidate: Infinity, expire: Infinity })
 
   if (type === "node--article") {
     params.include = "field_image,uid"
@@ -27,19 +31,9 @@ async function getNode(slug: string[]) {
 
   const resource = await drupal.getResource<DrupalNode>(type, uuid, {
     params,
-    next: { tags: [`node:${entityId}`, type] },
   })
 
-  if (!resource) {
-    throw new Error(
-      `Failed to fetch resource: ${translatedPath?.jsonapi?.individual}`,
-      {
-        cause: "DrupalError",
-      }
-    )
-  }
-
-  return resource
+  return resource || null
 }
 
 type NodePageParams = {
@@ -55,15 +49,10 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const params = await props.params
-
   const { slug } = params
 
-  let node
-  try {
-    node = await getNode(slug)
-  } catch (e) {
-    return {}
-  }
+  const node = await getNode(slug)
+  if (!node) return {}
 
   return {
     title: node.title,
@@ -90,15 +79,13 @@ export async function generateStaticParams(): Promise<NodePageParams[]> {
   }
 }
 
-async function NodeContent({ slug }: { slug: string[] }) {
-  let node
-  try {
-    node = await getNode(slug)
-  } catch (error) {
-    notFound()
-  }
+export default async function NodePage(props: NodePageProps) {
+  const params = await props.params
+  const { slug } = params
 
-  if (node?.status === false) {
+  const node = await getNode(slug)
+
+  if (!node || node.status === false) {
     notFound()
   }
 
@@ -107,16 +94,5 @@ async function NodeContent({ slug }: { slug: string[] }) {
       {node.type === "node--page" && <BasicPage node={node} />}
       {node.type === "node--article" && <Article node={node} />}
     </>
-  )
-}
-
-export default async function NodePage(props: NodePageProps) {
-  const params = await props.params
-  const { slug } = params
-
-  return (
-    <Suspense>
-      <NodeContent slug={slug} />
-    </Suspense>
   )
 }

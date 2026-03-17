@@ -1,4 +1,4 @@
-import { Suspense } from "react"
+import { cacheTag, cacheLife } from "next/cache"
 import { ArticleTeaser } from "@/components/drupal/ArticleTeaser"
 import { drupal } from "@/lib/drupal"
 import type { Metadata } from "next"
@@ -9,10 +9,13 @@ export const metadata: Metadata = {
   description: "Latest articles from our Drupal-powered blog.",
 }
 
-async function BlogContent() {
-  let nodes: DrupalNode[] = []
+async function getArticles(): Promise<DrupalNode[]> {
+  "use cache"
+  cacheTag("node_list:article")
+  cacheLife({ stale: Infinity, revalidate: Infinity, expire: Infinity })
+
   try {
-    nodes = await drupal.getResourceCollection<DrupalNode[]>(
+    return await drupal.getResourceCollection<DrupalNode[]>(
       "node--article",
       {
         params: {
@@ -21,15 +24,20 @@ async function BlogContent() {
           include: "field_image,uid",
           sort: "-created",
         },
-        next: { tags: ["node_list:article"] },
       }
     )
   } catch (error) {
     console.error("Failed to fetch articles:", error)
+    return []
   }
+}
+
+export default async function BlogPage() {
+  const nodes = await getArticles()
 
   return (
     <>
+      <h1 className="mb-10 text-6xl font-black">Latest Articles.</h1>
       {nodes?.length ? (
         nodes.map((node) => (
           <div key={node.id}>
@@ -40,17 +48,6 @@ async function BlogContent() {
       ) : (
         <p className="py-4">No articles found</p>
       )}
-    </>
-  )
-}
-
-export default function BlogPage() {
-  return (
-    <>
-      <h1 className="mb-10 text-6xl font-black">Latest Articles.</h1>
-      <Suspense>
-        <BlogContent />
-      </Suspense>
     </>
   )
 }
