@@ -74,16 +74,21 @@ const RESOURCE_TYPES = ["node--page", "node--article"]
 export const revalidate = 60
 
 export async function generateStaticParams(): Promise<NodePageParams[]> {
-  const resources = await drupal.getResourceCollectionPathSegments(
-    RESOURCE_TYPES,
-    {}
-  )
+  try {
+    const resources = await drupal.getResourceCollectionPathSegments(
+      RESOURCE_TYPES,
+      {}
+    )
 
-  return resources.map((resource) => {
-    return {
-      slug: resource.segments,
-    }
-  })
+    return resources.map((resource) => {
+      return {
+        slug: resource.segments,
+      }
+    })
+  } catch (error) {
+    console.error("Failed to fetch static params:", error)
+    return []
+  }
 }
 
 export default async function NodePage(props: NodePageProps) {
