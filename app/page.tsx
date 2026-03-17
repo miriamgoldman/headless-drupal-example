@@ -3,7 +3,7 @@ import { Link } from "@/components/navigation/Link"
 import type { DrupalNode } from "next-drupal"
 import type { Metadata } from "next"
 
-export const revalidate = 60
+export const revalidate = 0
 
 export const metadata: Metadata = {
   description: "A Next.js site powered by a Drupal backend.",
@@ -22,7 +22,7 @@ async function getHomepageNode(): Promise<DrupalNode | null> {
     const entityId = translatedPath.entity.id
 
     const node = await drupal.getResource<DrupalNode>(type, uuid, {
-      next: { revalidate: 60, tags: [`node:${entityId}`, "homepage"] },
+      next: { tags: [`node:${entityId}`, "homepage"] },
     })
 
     return node || null
