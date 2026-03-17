@@ -71,8 +71,6 @@ export async function generateMetadata(
 
 const RESOURCE_TYPES = ["node--page", "node--article"]
 
-export const revalidate = 60
-
 export async function generateStaticParams(): Promise<NodePageParams[]> {
   try {
     const resources = await drupal.getResourceCollectionPathSegments(

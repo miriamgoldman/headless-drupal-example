@@ -3,8 +3,6 @@ import { Link } from "@/components/navigation/Link"
 import type { DrupalNode } from "next-drupal"
 import type { Metadata } from "next"
 
-export const revalidate = 0
-
 export const metadata: Metadata = {
   description: "A Next.js site powered by a Drupal backend.",
 }

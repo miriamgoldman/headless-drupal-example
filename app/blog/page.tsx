@@ -8,8 +8,6 @@ export const metadata: Metadata = {
   description: "Latest articles from our Drupal-powered blog.",
 }
 
-export const revalidate = 60
-
 export default async function BlogPage() {
   let nodes: DrupalNode[] = []
   try {
