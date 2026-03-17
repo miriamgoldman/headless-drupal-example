@@ -19,11 +19,16 @@ async function handler(request: NextRequest) {
 
   try {
     path && revalidatePath(path)
+    const revalidatedTags: string[] = []
     tags?.split(",").forEach((tag) => {
-      revalidateTag(tag, "default")
+      revalidateTag(tag, { expire: 0 })
+      revalidatedTags.push(tag)
     })
 
-    return new Response("Revalidated.")
+    return Response.json({
+      revalidated: { path: path || null, tags: revalidatedTags },
+      timestamp: new Date().toISOString(),
+    })
   } catch (error) {
     return new Response((error as Error).message, { status: 500 })
   }
