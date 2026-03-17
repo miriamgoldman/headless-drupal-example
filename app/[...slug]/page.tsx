@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { notFound } from "next/navigation"
 import { Article } from "@/components/drupal/Article"
 import { BasicPage } from "@/components/drupal/BasicPage"
@@ -26,7 +27,7 @@ async function getNode(slug: string[]) {
 
   const resource = await drupal.getResource<DrupalNode>(type, uuid, {
     params,
-    next: { revalidate: 60, tags: [`node:${entityId}`, type] },
+    next: { tags: [`node:${entityId}`, type] },
   })
 
   if (!resource) {
@@ -89,11 +90,7 @@ export async function generateStaticParams(): Promise<NodePageParams[]> {
   }
 }
 
-export default async function NodePage(props: NodePageProps) {
-  const params = await props.params
-
-  const { slug } = params
-
+async function NodeContent({ slug }: { slug: string[] }) {
   let node
   try {
     node = await getNode(slug)
@@ -110,5 +107,16 @@ export default async function NodePage(props: NodePageProps) {
       {node.type === "node--page" && <BasicPage node={node} />}
       {node.type === "node--article" && <Article node={node} />}
     </>
+  )
+}
+
+export default async function NodePage(props: NodePageProps) {
+  const params = await props.params
+  const { slug } = params
+
+  return (
+    <Suspense>
+      <NodeContent slug={slug} />
+    </Suspense>
   )
 }

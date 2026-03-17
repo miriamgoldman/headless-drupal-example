@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { ArticleTeaser } from "@/components/drupal/ArticleTeaser"
 import { drupal } from "@/lib/drupal"
 import type { Metadata } from "next"
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
   description: "Latest articles from our Drupal-powered blog.",
 }
 
-export default async function BlogPage() {
+async function BlogContent() {
   let nodes: DrupalNode[] = []
   try {
     nodes = await drupal.getResourceCollection<DrupalNode[]>(
@@ -20,7 +21,7 @@ export default async function BlogPage() {
           include: "field_image,uid",
           sort: "-created",
         },
-        next: { revalidate: 60, tags: ["node_list:article"] },
+        next: { tags: ["node_list:article"] },
       }
     )
   } catch (error) {
@@ -29,7 +30,6 @@ export default async function BlogPage() {
 
   return (
     <>
-      <h1 className="mb-10 text-6xl font-black">Latest Articles.</h1>
       {nodes?.length ? (
         nodes.map((node) => (
           <div key={node.id}>
@@ -40,6 +40,17 @@ export default async function BlogPage() {
       ) : (
         <p className="py-4">No articles found</p>
       )}
+    </>
+  )
+}
+
+export default function BlogPage() {
+  return (
+    <>
+      <h1 className="mb-10 text-6xl font-black">Latest Articles.</h1>
+      <Suspense>
+        <BlogContent />
+      </Suspense>
     </>
   )
 }
