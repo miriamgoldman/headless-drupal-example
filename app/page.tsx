@@ -59,7 +59,7 @@ export default async function Home() {
       )}
       <Link
         href="/blog"
-        className="inline-block px-8 py-4 text-lg font-semibold text-white no-underline bg-blue-600 rounded-md hover:bg-blue-700"
+        className="inline-block px-8 py-4 text-lg font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700"
       >
         View All Articles
       </Link>
