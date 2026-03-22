@@ -61,7 +61,7 @@ export default async function Home() {
         href="/blog"
         className="inline-block px-8 py-4 text-lg font-semibold text-white no-underline bg-blue-600 rounded-md hover:bg-blue-700"
       >
-        Read the Blog
+        View All Articles
       </Link>
     </div>
   )
